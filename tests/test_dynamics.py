@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from len_bot.next.plugin import Image, Text
 from len_bot.next.plugin_testing import PluginTest
 
 PACKAGE = Path(__file__).parents[1]
@@ -28,8 +29,15 @@ async def test_member_list_and_latest_dynamics_query(source):
 
 
 @pytest.mark.asyncio
-async def test_card_delivery_needs_a_configured_font(source):
+async def test_dynamic_card_is_drawn_with_the_bundled_font(source):
+    member = {"id": "uid:672328094", "bilibiliUid": "672328094", "name": "嘉然", "avatarUrl": ""}
+    source.json("/api/search", {"items": [{
+        "id": "1", "dynamicId": "1", "member": member, "type": "text", "contentText": "今晚七点见～",
+        "publishedAt": "2026-10-06T12:00:00+08:00", "url": "https://t.bilibili.com/1", "images": [], "media": [],
+        "likeCount": 3, "commentCount": 1, "forwardCount": 0}], "total": 1, "nextCursor": None, "prevCursor": None})
     async with PluginTest(PACKAGE, config=config(source)) as bot:
-        with pytest.raises(ValueError, match="plugins.asoul.card_font"):
-            await bot.tool("send_asoul_dynamic_card", {"dynamic_id": "1"})
-        assert bot.deliveries == []
+        result = json.loads(await bot.tool("send_asoul_dynamic_card", {"dynamic_id": "1"}))
+        assert result["card_pages_prepared"] == 1
+        card, link = bot.deliveries[-1].parts
+        assert isinstance(card, Image) and "今晚七点见" in card.description
+        assert isinstance(link, Text) and link.text == "https://t.bilibili.com/1"

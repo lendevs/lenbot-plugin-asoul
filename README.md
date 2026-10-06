@@ -2,7 +2,7 @@
 
 LenBot 插件接口 1 的 A-SOUL 合集，插件名 `asoul`。包含两部分：
 
-- **日程**：读取一个 ICS 日历（默认枝江站 `https://asoul.love/calendar.ics`），`/日程` 命令和「今日直播」全文直接回复安排，`live_schedule` 工具按日期查询，开播前向启用的群发场景事件。
+- **日程**：读取一个 ICS 日历（默认枝江站 `https://asoul.love/calendar.ics`），`/日程` 命令和「今日直播」全文直接发日程卡片，可以把某场设为特别关注，`live_schedule` 工具按日期查询，开播前向启用的群发场景事件。
 - **动态**：访问 A-SOUL 动态查询站（默认 `https://len5010.top/dynamics/api`）的公开接口，查询成员、动态、历史同日和二创，并能把正文卡片和来源原图发到本群。不读取任何账号。
 
 ## 安装
@@ -15,9 +15,7 @@ LenBot 插件接口 1 的 A-SOUL 合集，插件名 `asoul`。包含两部分：
 {
   "plugins": {
     "asoul": {
-      "live_keywords": ["直播"],
-      "card_mode": "image",
-      "card_font": "/absolute/path/to/chinese-font.ttf"
+      "live_keywords": ["直播"]
     }
   },
   "scenes": {"onebot:group:10001": {"plugins": ["asoul"]}}
@@ -37,17 +35,20 @@ LenBot 插件接口 1 的 A-SOUL 合集，插件名 `asoul`。包含两部分：
 | `asoul_calendar.user_agent` | `calendar_user_agent` |
 | `asoul_dynamics.api_base_url` | `dynamics_api_url` |
 | `asoul_dynamics.cache_seconds` | `dynamics_cache_seconds` |
-| 两者的 `request_timeout_seconds`、`card_font` | 共用同名字段 |
+| 两者的 `request_timeout_seconds` | 共用同名字段 |
+| 两者的 `card_font` | 删除，卡片改用随插件分发的字体 |
 
 其余日程字段（`calendar_timezone`、`live_keywords`、`non_live_keywords`、`include_all_day`、`remind_minutes`、`card_mode`）名称不变。场景 `plugins` 列表里的旧名字换成 `asoul`。旧数据目录里只有 `asoul_calendar/reminded.json` 需要移到新插件数据目录 `asoul/`，不移也只会在重启后对即将开始的条目重新提醒一次。
 
 ## 日程
 
-- `/日程`、`/日程 明天`、`/日程 本周`，以及全文「今日直播」：插件直接回复，不叫醒大脑。`card_mode=text` 发文字，`image` 发分页卡片。
-- 低频工具 `live_schedule(start, days, member)`：大脑经 `tool_search` 发现后按日期查询，`member` 按日历原文包含的文字筛选。
-- 后台每分钟检查一次，开播前 `remind_minutes` 分钟向启用的群发一条场景事件，由大脑决定要不要提醒大家；已提醒的条目记在插件数据目录的 `reminded.json`，重启不重复提醒。`remind_minutes=0` 关闭提醒。
+- `/日程`、`/日程 明天`、`/日程 本周`，以及全文「今日直播」：插件直接回复，不叫醒大脑。`card_mode=image`（默认）发日程卡片，`text` 发逐行列表。
+- 卡片按天分组，每场显示时间、分类、成员和标题，配一张对应成员的表情；正在播的标「直播中」，取消的场次划掉保留。本周卡片用紧凑排版。
+- 特别关注：`/日程高亮 日期` 列出当天各场的序号，`/日程高亮 日期 序号` 标记，`/取消日程高亮 日期 序号` 取消，`/日程高亮列表` 查看还没过去的。日期写 `今天`、`明天`、`后天`、`10-07` 或 `2026-10-07`。标记的场次在卡片上用品牌色高亮，记录按日历条目的 UID 存在插件 KV，开播一周后自动清掉。
+- 低频工具 `live_schedule(start, days, member)`：大脑经 `tool_search` 发现后按日期查询，`member` 按日历原文包含的文字筛选，结果里带 `special_follow`。
+- 后台每分钟检查一次，开播前 `remind_minutes` 分钟向启用的群发一条场景事件，由大脑决定要不要提醒大家；特别关注的场次会在事件里说明。已提醒的条目记在插件数据目录的 `reminded.json`，重启不重复提醒。`remind_minutes=0` 关闭提醒。
 
-日历读取失败时命令如实回复没取到，不说成没有直播，原始错误进面板的插件错误。图片模式使用显式字体，完整保留长标题、日历描述和来源链接，不裁切，也不自动降级为文字；字体错误会导致插件加载失败。没有条目时如实回复未收录。
+日历读取失败时回复「暂时没取到，稍后再试」，原始错误进面板的插件错误；当天没有条目时回复「暂无直播」。
 
 ## 动态
 
@@ -62,9 +63,9 @@ LenBot 插件接口 1 的 A-SOUL 合集，插件名 `asoul`。包含两部分：
 
 HTTP 单次请求，不跟随跳转、不读环境代理、不重试。成功的查询页最多缓存 16 页，过期后请求失败就报错，不返回旧页；源站返回的 409（快照已变化）原文返回。
 
-## 字体
+## 字体与表情
 
-`card_font` 是日程图片和动态卡片共用的中文字体绝对路径，字体不随仓库提供，也不自动寻找或下载。留空时日程只能用文字模式，动态查询仍可用、发卡片会报配置错误。字体需要覆盖实际内容；卡片是结构化文字排版，不需要浏览器或模型。
+卡片字体用随插件分发的更纱黑体（Sarasa Mono SC），缺字的符号回退到系统里的 Arial Unicode、DejaVu Sans 或 Noto 字体。日程卡片的成员表情放在 `assets/stickers/<成员名>/`，按日历描述里的主播名挑选，同一张卡片里尽量不重复；没有表情的成员不配图。加新成员只需新建同名目录放 WebP 图片。
 
 ## 开发
 

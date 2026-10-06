@@ -1,5 +1,5 @@
 name = "asoul"
-version = "1.0.0"
+version = "1.1.0"
 interface = 1
 requires_lenbot = ">=0.2,<1"
 requires_python = ">=3.13"
@@ -8,7 +8,7 @@ reload = "plugin"
 authors = ["LEN5010"]
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/lendevs/lenbot-plugin-asoul"
-description = "A-SOUL 合集：读取 ICS 日历，/日程 查看安排、live_schedule 工具按日期查询、开播前发场景事件；动态站成员/动态/历史同日/二创查询，并通过本群出口发送正文卡片和来源原图。"
+description = "A-SOUL 合集：读取 ICS 日历，/日程 发日程卡片、/日程高亮 标记特别关注、live_schedule 工具按日期查询、开播前发场景事件；动态站成员/动态/历史同日/二创查询，并通过本群出口发送正文卡片和来源原图。"
 
 [config.calendar_url]
 label = "日历地址"
@@ -31,8 +31,8 @@ label = "日程输出方式"
 group = "日程"
 options = [{ value = "text", label = "文字" }, { value = "image", label = "图片" }]
 type = "string"
-default = "text"
-description = "图片模式需要填写卡片字体；出错时不改用文字。"
+default = "image"
+description = "图片是日程卡片，文字是逐行列表。"
 
 [config.live_keywords]
 label = "算作直播的关键词"
@@ -90,12 +90,6 @@ group = "动态"
 type = "number"
 default = 120
 description = "成功查询的进程内缓存秒数（最多16页）；0关闭。随机与明确详情不缓存。"
-
-[config.card_font]
-label = "卡片字体"
-type = "path"
-default = ""
-description = "日程图片和动态卡片共用的中文字体绝对路径。留空时日程只能用文字模式，动态仍可查询但发卡片会报配置错误。不自动寻找或下载字体。"
 
 [config.request_timeout_seconds]
 label = "超时（秒）"

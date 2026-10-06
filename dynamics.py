@@ -4,7 +4,6 @@ import asyncio
 from dataclasses import asdict
 from datetime import datetime
 import json
-from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
 
@@ -12,13 +11,14 @@ from len_bot.next.plugin import Image, Invocation, PluginContext, Text, tool
 from len_bot.next.text_cards import CardSection, TextCards
 
 from .cards import dynamic_sections, fanart_sections
+from .schedule import FONT
 from .client import Client, Response
 from .models import Dynamic, DynamicPage, Fanart, FanartPage, HistoricalDay, Members
 
 
 class DynamicsFeature:
     def _init_dynamics(self, ctx: PluginContext) -> None:
-        self.dynamics_cards = TextCards(Path(ctx.config['card_font'])) if ctx.config['card_font'] else None
+        self.dynamics_cards = TextCards(FONT)
         self.dynamics_client = Client(ctx.config['dynamics_api_url'], timeout=ctx.config['request_timeout_seconds'],
                                       ttl=ctx.config['dynamics_cache_seconds'])
 
@@ -75,35 +75,27 @@ class DynamicsFeature:
                        {'q': query, 'character': character, 'contentType': content_type, 'kind': kind,
                         'source': source, 'limit': limit, 'random': '1'}, cached=False)).output())
 
-    @tool('send_asoul_dynamic_card', '重新读取真实dynamicId，渲染完整正文卡片并发到本群；可附来源原图，不播放视频。需配置card_font；回报实际发送状态')
+    @tool('send_asoul_dynamic_card', '重新读取真实dynamicId，渲染完整正文卡片并发到本群；可附来源原图，不播放视频；回报实际发送状态')
     async def send_dynamic(self, ctx: Invocation, dynamic_id: str, member: str | None = None,
                            include_images: bool = True) -> str:
-        self.require_cards()
         response = await self.dynamics_client.dynamic(dynamic_id, member)
         return await self.send(ctx, response, dynamic_sections(response.data), response.data.url, include_images)
 
-    @tool('send_asoul_fanart_card', '读取真实sourceDynamicId（含douban:ID），渲染卡片并发到本群；可附来源原图。需配置card_font；回报实际发送状态')
+    @tool('send_asoul_fanart_card', '读取真实sourceDynamicId（含douban:ID），渲染卡片并发到本群；可附来源原图；回报实际发送状态')
     async def send_fanart(self, ctx: Invocation, source_dynamic_id: str, include_images: bool = True) -> str:
-        self.require_cards()
         response = await self.dynamics_client.fanart(source_dynamic_id)
         return await self.send(ctx, response, fanart_sections(response.data), response.data.sourceDynamicUrl, include_images)
 
-    def require_cards(self) -> TextCards:
-        if self.dynamics_cards is None:
-            raise ValueError('发卡片需要在根配置 plugins.asoul.card_font 填写字体文件绝对路径')
-        return self.dynamics_cards
-
     async def send(self, ctx: Invocation, response: Response[Dynamic] | Response[Fanart],
                    document: tuple[str, str, list[CardSection], list[str]], source: str, include_images: bool) -> str:
-        renderer = self.require_cards()
         title, subtitle, sections, urls = document
         if include_images and len(urls) > 16:
             raise ValueError(f'来源有 {len(urls)} 张图片，超过单次16张；可明确 include_images=false 只发正文卡片')
         if response.degraded is not None:
-            sections.insert(0, CardSection('来源报告数据降级', response.degraded))
+            sections.insert(0, CardSection('部分数据缺失', response.degraded))
         if urls and not include_images:
-            sections.append(CardSection('来源图片链接（本次不发原图）', '\n'.join(urls)))
-        pages = await asyncio.to_thread(renderer.render, title, subtitle, sections, source=source)
+            sections.append(CardSection('图片链接', '\n'.join(urls)))
+        pages = await asyncio.to_thread(self.dynamics_cards.render, title, subtitle, sections, source=source)
         parts = [Image(page.data, f'{title} · 第 {index} 页\n{page.text}') for index, page in enumerate(pages, 1)]
         if include_images:
             for index, url in enumerate(urls, 1):

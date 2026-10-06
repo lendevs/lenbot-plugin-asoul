@@ -7,7 +7,9 @@
 - 上游：[LEN5010/astrbot_plugin_asoul](https://github.com/LEN5010/astrbot_plugin_asoul) `5a945f695ecaa434ff71d402a344f8e9e40feab0`，许可证原件见 [LICENSE](LICENSE)（GNU AGPL v3）。
 - `ics.py` 的 ICS 折行、转义与日期解析沿用 LenBot 旧插件 `src/len_bot/plugins/builtin/asoul_calendar/calendar.py`（同一上游移植）。
 - 2026-09-28 按新插件接口 1 重写入口：旧卡片渲染器、成员别名表、插件内工作流不再保留；成员筛选改为按日历原文包含的文字匹配。
-- 后续在接口1图文出口上接入显式字体的分页日程卡片，复用主仓库通用 TextCards；不复制旧字体和头像。
+- 2026-10-06 日程卡片按 LenBot 面板配色和标志重新设计（`card_kit.py`、`schedule_card.py`），`card_kit.py` 与 `lenbot-plugin-bilibili` 各带一份。特别关注沿用上游 `/日程高亮` 命令用法，只保留一种高亮颜色。
+- `assets/font.ttf` 是更纱黑体 Sarasa Mono SC Light，取自上游的 `font.ttf`，按 SIL Open Font License 1.1 分发；粗体用同色描边模拟。动态卡片也改用这份字体。
+- `assets/stickers/` 是成员表情，取自上游的成员目录，缩到 160 像素并转为 WebP，版权归原权利人。
 
 ## 动态（dynamics.py、client.py、models.py、cards.py）
 
