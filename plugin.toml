@@ -1,0 +1,105 @@
+name = "asoul"
+version = "1.0.0"
+interface = 1
+requires_lenbot = ">=0.1,<1"
+requires_python = ">=3.13"
+platforms = ["linux", "darwin"]
+reload = "plugin"
+authors = ["LEN5010"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/lendevs/lenbot-plugin-asoul"
+description = "A-SOUL 合集：读取 ICS 日历，/日程 查看安排、live_schedule 工具按日期查询、开播前发场景事件；动态站成员/动态/历史同日/二创查询，并通过本群出口发送正文卡片和来源原图。"
+
+[config.calendar_url]
+label = "日历地址"
+group = "日程"
+placeholder = "https://example.com/calendar.ics"
+type = "url"
+default = "https://asoul.love/calendar.ics"
+description = "日历 ICS 地址（HTTP 或 HTTPS），默认枝江站日历。"
+
+[config.remind_minutes]
+label = "提前提醒（分钟）"
+group = "日程"
+minimum = 0
+type = "integer"
+default = 10
+description = "开播前多少分钟发出场景事件；0 表示不提醒。"
+
+[config.card_mode]
+label = "日程输出方式"
+group = "日程"
+options = [{ value = "text", label = "文字" }, { value = "image", label = "图片" }]
+type = "string"
+default = "text"
+description = "图片模式需要填写卡片字体；出错时不改用文字。"
+
+[config.live_keywords]
+label = "算作直播的关键词"
+group = "日程"
+type = "string_list"
+default = []
+description = "标题、分类或地点含这些词的条目算直播。"
+
+[config.non_live_keywords]
+label = "不算直播的关键词"
+group = "日程"
+type = "string_list"
+default = []
+description = "不含直播关键词且含这些词的条目不算直播。"
+
+[config.include_all_day]
+label = "全天条目算直播"
+group = "日程"
+type = "boolean"
+default = false
+description = "全天条目是否算直播安排。"
+
+[config.calendar_timezone]
+label = "日历时区"
+group = "日程"
+type = "string"
+default = "Asia/Shanghai"
+description = "日历里不带时区的时间按这个时区解释。"
+
+[config.calendar_cache_seconds]
+label = "日历缓存时间（秒）"
+group = "日程"
+type = "number"
+default = 300
+description = "成功读取后多少秒内复用同一份日历，不重复请求。"
+
+[config.calendar_user_agent]
+label = "日历请求 User-Agent"
+group = "日程"
+type = "string"
+default = "LenBot-Calendar/2.0"
+description = "请求日历时的 User-Agent。"
+
+[config.dynamics_api_url]
+label = "动态站接口地址"
+group = "动态"
+placeholder = "https://example.com/dynamics/api"
+type = "url"
+default = "https://len5010.top/dynamics/api"
+description = "动态站公开 API 根地址，默认 A-SOUL 动态查询站；不读取站点账号。"
+
+[config.dynamics_cache_seconds]
+label = "动态缓存时间（秒）"
+group = "动态"
+type = "number"
+default = 120
+description = "成功查询的进程内缓存秒数（最多16页）；0关闭。随机与明确详情不缓存。"
+
+[config.card_font]
+label = "卡片字体"
+type = "path"
+default = ""
+description = "日程图片和动态卡片共用的中文字体绝对路径。留空时日程只能用文字模式，动态仍可查询但发卡片会报配置错误。不自动寻找或下载字体。"
+
+[config.request_timeout_seconds]
+label = "超时（秒）"
+group = "高级"
+type = "number"
+default = 15
+description = "读取日历或动态站的单次 HTTP 超时秒数，失败不重试、不跟随跳转。"
