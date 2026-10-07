@@ -11,8 +11,8 @@ import pytest
 
 from PIL import Image as PILImage
 
-from len_bot.next.plugin import Image
-from len_bot.next.plugin_testing import PluginTest
+from len_bot.plugin import Image
+from len_bot.plugin_testing import PluginTest
 
 PACKAGE = Path(__file__).parents[1]
 ZONE = ZoneInfo("Asia/Shanghai")
