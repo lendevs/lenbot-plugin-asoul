@@ -1,5 +1,5 @@
 name = "asoul"
-version = "1.1.0"
+version = "1.2.0"
 interface = 1
 requires_lenbot = ">=0.2,<1"
 requires_python = ">=3.13"
@@ -9,6 +9,9 @@ authors = ["LEN5010"]
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/lendevs/lenbot-plugin-asoul"
 description = "A-SOUL 合集：读取 ICS 日历，/日程 发日程卡片、/日程高亮 标记特别关注、live_schedule 工具按日期查询、开播前发场景事件；动态站成员/动态/历史同日/二创查询，并通过本群出口发送正文卡片和来源原图。"
+
+[model]
+instructions = "prompts/tools.md"
 
 [config.calendar_url]
 label = "日历地址"

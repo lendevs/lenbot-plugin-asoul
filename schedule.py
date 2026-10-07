@@ -1,6 +1,8 @@
 """Calendar: live schedule from one ICS calendar, schedule card, special follows, schedule tool and pre-live scene events."""
 
 from __future__ import annotations
+from typing import Annotated
+from pydantic import Field
 
 import asyncio
 from datetime import date, datetime, time, timedelta
@@ -258,15 +260,28 @@ class CalendarFeature:
             f"{start:%m-%d} 周{WEEKDAYS[start.weekday()]} {start:%H:%M} {value['title']}"
             + (f"（{value['hosts']}）" if value["hosts"] else "") for start, value in rows))
 
-    @tool("live_schedule", "按日期查询直播日历；start 为 YYYY-MM-DD（本群时区），days 为天数，member 按日历原文包含的文字筛选")
-    async def lookup(self, ctx: Invocation, start: str, days: int = 1, member: str | None = None) -> str:
-        if not 1 <= days <= 31:
-            raise ValueError("days 必须在 1 到 31 之间")
+    @tool("live_schedule", "按日期查询直播日历；start 为 YYYY-MM-DD（本群时区），days 为天数，member 按日历原文包含的文字筛选", summary='查询 A-SOUL 指定日期的直播日历')
+    async def lookup(
+        self,
+        ctx: Invocation,
+        start: Annotated[
+            str,
+            Field(description='日期 YYYY-MM-DD，按本群时区解释', examples=['2026-10-06']),
+        ],
+        days: Annotated[
+            int,
+            Field(description='从 start 开始查询的天数', ge=1, le=31),
+        ] = 1,
+        member: Annotated[
+            str | None,
+            Field(description='按日历原文包含的成员名称筛选'),
+        ] = None,
+    ) -> dict:
         zone = ZoneInfo(ctx.timezone())
         first = datetime.combine(date.fromisoformat(start), time.min, zone)
         events = await self.between(first, first + timedelta(days=days), member)
         marked = await self.highlights()
-        return json.dumps({
+        return {
             "source": self.ctx.config["calendar_url"], "timezone": zone.key,
             "range": [first.isoformat(), (first + timedelta(days=days)).isoformat()],
             "events": [{"uid": event.source_uid, "start": event.start_at.astimezone(zone).isoformat(),
@@ -274,7 +289,7 @@ class CalendarFeature:
                         "title": event.title, "host": event.host_signature, "url": event.url,
                         "special_follow": highlight_key(event) in marked} for event in events],
             "note": "日历未收录不代表确定没有直播；日程时间不证明实际开播。special_follow 是群友手动标记的特别关注。",
-        }, ensure_ascii=False)
+        }
 
     @background(every="1m")
     async def remind(self, ctx: PluginContext) -> None:

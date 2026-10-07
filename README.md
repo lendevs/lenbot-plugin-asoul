@@ -52,12 +52,11 @@ LenBot 插件接口 1 的 A-SOUL 合集，插件名 `asoul`。包含两部分：
 
 ## 动态
 
-- `get_asoul_members`：源站成员列表，后续筛选传 `uid:数字`。
-- `get_asoul_dynamics`、`search_asoul_dynamics`：最近／关键词／类型／日期范围／分页。
-- `read_asoul_dynamic`：按真实动态 ID 重新定位。特殊成员需传 `member`；不把相邻记录当目标。
-- `get_asoul_on_this_day`：往年同月同日，默认本群时区的今天；源站此接口只查主库，不含今年和直播。
-- `search_asoul_fanart`、`get_random_asoul_fanart`：二创、物料、B 站／豆瓣来源。随机查询不缓存。
-- `send_asoul_dynamic_card`、`send_asoul_fanart_card`：发往调用场景，最多 32 页正文和 16 张来源原图。`include_images=false` 表示只发正文和链接。
+- `asoul_dynamics(request)`：action 为 members、search、read、history；最近动态用 search 并省略 query。member 可用源站 ID 或完整名称；按成员表精确匹配，不猜别名。nextCursor 原样续页。
+- `asoul_fanart(request)`：action 为 search 或 random。搜索支持分页、来源和分类；随机查询不缓存，不接受分页游标。
+- `asoul_send_card(request)`：action 为 dynamic 或 fanart，各自要求来源 dynamicId／sourceDynamicId；include_images=false 只发正文与链接。
+
+连同 `live_schedule` 共四项能力。每个操作的必填、可选字段由 requests.py 的类型分支说明；未知字段直接报错。查询与发送分开。
 
 发卡片会重新查询源项，正文、转发原文、指标和媒体信息分页排版，不裁剪长文。原图按来源顺序发送，保留 GIF，重复 URL 只发一次。全部内容准备好才开始发送；平台发送中途失败保留已确认的部分，不重发。返回的 `delivery` 是实际发送状态。
 
@@ -78,3 +77,11 @@ uv run --project ../LenBot --no-sync pytest -q
 测试用本地 HTTP 服务模拟日历和动态站，不访问真实站点。真实源站和 QQ 内的展示效果未在测试中验证。
 
 许可证：GNU AGPL v3 或更新版本，见 [LICENSE](LICENSE)；来源说明见 [SOURCE.md](SOURCE.md)。查询和转发的内容仍属于原作者。
+
+## 工具接口
+
+工具采用接口 1 的显式简介、Field 参数说明与 `prompts/tools.md` 共享指南，返回原生 JSON 或文本。用 `PluginTest.preview_tools()` 查看模型说明、参数与可用性；模型服务默认关闭，真实发送仍单独核对。兼容和更新事项见 [CHANGELOG](CHANGELOG.md)。
+
+CI 固定到包含当前插件接口的宿主开发提交；本次未创建版本标签或 Release。catalog-entry.json 只记录开发安装来源，未公开插件不加入主目录。
+
+本机生成 ZIP：`uv run --no-project --python 3.13 python scripts/package.py /tmp/plugin.zip`。打包取 Git 已跟踪的运行源码和资源，新增文件需先加入 Git；不会收录本机环境、测试或配置。
