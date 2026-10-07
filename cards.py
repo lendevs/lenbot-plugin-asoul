@@ -1,6 +1,6 @@
 """Source text cards plus actual original images."""
 
-from len_bot.next.text_cards import CardSection
+from len_bot.text_cards import CardSection
 from .models import Dynamic, Fanart, Media
 
 

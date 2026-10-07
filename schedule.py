@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 
 import httpx
 
-from len_bot.next.plugin import Image, Invocation, PluginContext, background, command, fullmatch, tool
+from len_bot.plugin import Image, Invocation, PluginContext, background, command, fullmatch, tool
 
 from .card_kit import Fonts
 from .ics import CalendarEvent, parse_calendar

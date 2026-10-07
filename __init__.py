@@ -1,6 +1,6 @@
 """A-SOUL collection: ICS live schedule with pre-live scene events, and dynamics-site queries with card delivery."""
 
-from len_bot.next.plugin import Plugin, PluginContext
+from len_bot.plugin import Plugin, PluginContext
 
 from .schedule import CalendarFeature
 from .dynamics import DynamicsFeature

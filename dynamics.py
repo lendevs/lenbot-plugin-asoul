@@ -7,8 +7,8 @@ from typing import Annotated, Literal
 from pydantic import Field
 from zoneinfo import ZoneInfo
 
-from len_bot.next.plugin import Image, Invocation, PluginContext, Text, tool
-from len_bot.next.text_cards import CardSection, TextCards
+from len_bot.plugin import Image, Invocation, PluginContext, Text, tool
+from len_bot.text_cards import CardSection, TextCards
 
 from .cards import dynamic_sections, fanart_sections
 from .schedule import FONT

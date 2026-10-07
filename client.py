@@ -10,7 +10,7 @@ from urllib.parse import urljoin, urlsplit
 import httpx
 from pydantic import BaseModel, ValidationError
 
-from len_bot.next.image_assets import MAX_IMAGE_BYTES, inspect_image
+from len_bot.image_assets import MAX_IMAGE_BYTES, inspect_image
 
 from .models import Dynamic, DynamicPage, Fanart, FanartPage
 
